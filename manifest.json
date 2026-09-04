@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Sprint Goal Banner for Jira",
+  "version": "1.0.0",
+  "description": "Shows your active Jira sprint goal in a banner above the board, so you never have to dig for it.",
+  "minimum_chrome_version": "102",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["storage"],
+  "action": {
+    "default_title": "Sprint Goal Banner",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.atlassian.net/*"],
+      "js": ["content.js"],
+      "css": ["banner.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": ["https://*.atlassian.net/*"]
+}

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body {
+      width: 260px;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: 13px;
+      color: #172b4d;
+      background: #fff;
+    }
+    .hd {
+      padding: 12px 14px;
+      background: #0052cc;
+      color: #fff;
+      font-weight: 700;
+    }
+    .body { padding: 14px; }
+    .board {
+      font-size: 12px;
+      color: #6b778c;
+      margin-bottom: 12px;
+      word-break: break-word;
+    }
+    .board b { color: #172b4d; }
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .row .lbl { font-weight: 600; }
+    /* toggle switch */
+    .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: #c1c7d0; border-radius: 22px; transition: .15s;
+    }
+    .slider:before {
+      content: ""; position: absolute; height: 16px; width: 16px;
+      left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .15s;
+    }
+    input:checked + .slider { background: #36b37e; }
+    input:checked + .slider:before { transform: translateX(18px); }
+    input:disabled + .slider { opacity: .5; cursor: default; }
+    .note { margin-top: 12px; font-size: 11px; color: #8993a4; line-height: 1.4; }
+    .divider { height: 1px; background: #ebecf0; margin: 14px 0; }
+    .seg {
+      display: flex; margin-top: 8px;
+      border: 1px solid #dfe1e6; border-radius: 6px; overflow: hidden;
+    }
+    .seg button {
+      flex: 1; border: none; background: #fff; color: #42526e;
+      font-size: 12px; padding: 6px 0; cursor: pointer;
+    }
+    .seg button + button { border-left: 1px solid #dfe1e6; }
+    .seg button.active { background: #0052cc; color: #fff; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="hd">🎯 Sprint Goal Banner</div>
+  <div class="body">
+    <div class="board" id="board">Checking this tab…</div>
+    <div class="row">
+      <span class="lbl">Show on this board</span>
+      <label class="switch">
+        <input type="checkbox" id="toggle" disabled />
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="note" id="note">Open a Jira board to toggle the banner for it.</div>
+
+    <div class="divider"></div>
+    <div class="lbl">Banner theme</div>
+    <div class="seg" id="theme">
+      <button data-theme="system">System</button>
+      <button data-theme="light">Light</button>
+      <button data-theme="dark">Dark</button>
+    </div>
+    <div class="note">Applies to the banner on every board.</div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
