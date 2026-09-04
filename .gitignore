@@ -8,6 +8,7 @@ Thumbs.db
 *~
 .idea/
 .vscode/
+.obsidian/
 
 # Node (only if you later add tooling)
 node_modules/

@@ -44,11 +44,18 @@ uploaded automatically; it's a fill-in sheet.
 > a given board, and the selected banner theme (System/Light/Dark). No data is
 > transmitted anywhere.
 
-**Host permission `https://*.atlassian.net/*`**
-> Required to run on Jira Cloud board pages, read the board id from the URL, and
-> request the active sprint goal from the user's own Jira site via its Agile REST
-> API using the user's existing session. The extension accesses no other sites
-> and sends no data to third parties.
+**`activeTab`**
+> Used only when the user clicks the toolbar icon: it lets the popup read the
+> current tab's URL to identify which Jira board is being toggled. No browsing
+> history is read and nothing runs until the user clicks.
+
+**Content script on `https://*.atlassian.net/*` (site access shown at install)**
+> The banner is injected on Jira Cloud pages; the wildcard is required because
+> every customer has their own `<site>.atlassian.net` subdomain and boards are
+> reached through Jira's in-page navigation. The script reads the board id from
+> the URL and requests the active sprint goal from the user's own Jira site via
+> its same-origin Agile REST API using the user's existing session. The
+> extension accesses no other sites and sends no data to third parties.
 
 **Remote code**
 > No. All code is bundled in the package; nothing is fetched or executed from a
@@ -63,7 +70,7 @@ uploaded automatically; it's a fill-in sheet.
 - Certify compliance with the Developer Program Policies: **Yes.**
 - Privacy policy URL: host `PRIVACY.md` somewhere public (e.g. a GitHub repo or
   Gist) and paste the URL here. A privacy policy URL is required because the
-  extension requests host permissions.
+  extension runs content scripts on users' Jira sites.
 
 ## Assets
 

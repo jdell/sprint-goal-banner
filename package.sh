@@ -12,7 +12,6 @@ TMP="$(mktemp -d)"
 zip -r "${TMP}/${OUT}" \
   manifest.json \
   content.js \
-  banner.css \
   popup.html \
   popup.js \
   icons \

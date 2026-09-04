@@ -4,11 +4,24 @@ const boardEl = document.getElementById("board");
 const toggleEl = document.getElementById("toggle");
 const noteEl = document.getElementById("note");
 
+/* Mirrors parseBoardLocation() in content.js: board root and backlog views. */
 function boardIdFromUrl(url) {
   if (!url) return null;
-  let m = url.match(/\/boards\/(\d+)/);
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch (e) {
+    return null;
+  }
+  let m = parsed.pathname.match(
+    /\/jira\/software\/(?:c\/)?projects\/[^/]+\/boards\/(\d+)(?:\/backlog)?\/?$/,
+  );
   if (m) return m[1];
-  m = url.match(/[?&]rapidView=(\d+)/);
+  if (/\/secure\/RapidBoard\.jspa$/i.test(parsed.pathname)) {
+    const rv = parsed.searchParams.get("rapidView");
+    if (rv && /^\d+$/.test(rv)) return rv;
+  }
+  m = parsed.pathname.match(/\/boards\/(\d+)\/?$/);
   if (m) return m[1];
   return null;
 }
@@ -20,13 +33,12 @@ function storageKey(boardId) {
 async function init() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const url = tab && tab.url;
-  const onJira = url && /^https:\/\/[^/]+\.atlassian\.net\//.test(url);
-  const boardId = onJira ? boardIdFromUrl(url) : null;
+  // No origin check: the URL shape decides, so self-hosted Jira (Server/DC,
+  // enabled by editing the manifest's matches) can still use the toggle.
+  const boardId = boardIdFromUrl(url);
 
   if (!boardId) {
-    boardEl.innerHTML = onJira
-      ? "You're on Jira, but not on a board view."
-      : "This tab isn't a Jira board.";
+    boardEl.innerHTML = "This tab isn't a Jira board view.";
     noteEl.textContent = "Open a board (…/boards/123) to toggle its banner.";
     return;
   }

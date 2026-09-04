@@ -15,12 +15,13 @@ To update after edits, click the refresh icon on the extension card.
 
 ## How it works
 
-- Detects the board id from the URL (`/boards/123` or `?rapidView=123`).
-- Fetches `GET /rest/agile/1.0/board/{id}/sprint?state=active` (same-origin, with credentials).
+- Detects the board id from the URL (board and backlog views: `/boards/123`, `/boards/123/backlog`, or legacy `?rapidView=123`).
+- Asks `GET /rest/agile/1.0/board/{id}` for the board type (Kanban boards get a short note instead of an error), then fetches `GET /rest/agile/1.0/board/{id}/sprint?state=active` (same-origin, with credentials, following pagination). Sprints that originate on other boards are filtered out unless the board shows only those.
 - Renders each active sprint's name + goal in the banner. If a board runs parallel sprints, all active goals are shown.
-- **Inserts the banner in the normal page flow, just above the board content**, so it never overlaps the board — the board simply starts below it.
-- Follows Jira's single-page navigation and re-checks every couple of seconds so the banner stays put.
-- Detects Kanban boards (which have no sprints) and shows a short note instead of an error.
+- **Inserts the banner in the normal page flow, just above the board content**, so it never overlaps the board — the board simply starts below it. The banner lives in a shadow root, so Jira's CSS can't restyle it and vice versa.
+- Finds its place with a tiered anchor search: Jira's board container test hooks first, fuzzy attribute matches next, and the `main[role="main"]` landmark as a fallback — so a Jira UI rework degrades placement gracefully instead of breaking the banner.
+- Follows Jira's single-page navigation via the Navigation API and re-places the banner through a MutationObserver when Jira re-renders — no constant polling.
+- Refreshes the goal about once a minute while the tab is visible, and backs off with retries when Jira can't be reached.
 
 ## Turning it on/off per board
 
@@ -30,16 +31,16 @@ The **✕** on the banner also hides it for the current board — turn it back o
 
 ## Theme
 
-The popup has a **Banner theme** switch: **System** (follows your OS/browser light-or-dark setting — the default), **Light** (always light), or **Dark** (always dark). It applies to the banner on every board.
+The popup has a **Banner theme** switch: **System** (follows Jira's own light/dark mode when one is set, otherwise your OS/browser setting — the default), **Light** (always light), or **Dark** (always dark). It applies to the banner on every board.
 
 ## Notes & tweaks
 
 - **No goal shows** but the sprint has one: the sprint's Goal field may be empty in Jira, or you may be on a Kanban board (no sprints).
-- **Jira Server / Data Center:** change the `matches` and `host_permissions` in `manifest.json` to your Jira domain — the same Agile API path applies.
+- **Jira Server / Data Center:** change the `matches` in `manifest.json` to your Jira domain — the same Agile API path applies.
 
 ## Publishing to the Chrome Web Store
 
-1. **Package it.** Run `bash package.sh` (or `zip -r sprint-goal-banner.zip . -x '*.DS_Store' 'store/*' 'package.sh' 'STORE_LISTING.md'`). This produces `sprint-goal-banner-<version>.zip` containing only the files the extension needs to run. The `store/` folder (screenshots) and the docs are intentionally excluded from the package.
+1. **Package it.** Run `bash package.sh` (or the same allowlist by hand: `zip -r sprint-goal-banner.zip manifest.json content.js popup.html popup.js icons`). This produces `sprint-goal-banner-<version>.zip` containing only the files the extension needs to run — never zip the whole folder, or `.git/`, editor state, and docs end up in the store upload.
 2. **Create a developer account** at the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) (one-time US$5 fee).
 3. **Add a new item** and upload the zip.
 4. **Fill the listing** using `STORE_LISTING.md` — name, summary, description, single-purpose statement, and the permission justifications are all written out there.
@@ -48,11 +49,12 @@ The popup has a **Banner theme** switch: **System** (follows your OS/browser lig
 7. **Submit for review.** First reviews typically take a few business days.
 
 ### Files in the package
-- `manifest.json`, `content.js`, `banner.css`, `popup.html`, `popup.js`, `icons/`
+- `manifest.json`, `content.js`, `popup.html`, `popup.js`, `icons/`
 ### Not shipped (repo/store only)
 - `store/` (screenshots), `STORE_LISTING.md`, `PRIVACY.md`, `README.md`, `LICENSE`, `package.sh`, `PUBLISHING.md`, `RELEASE_NOTES.md`, `.gitignore`
 
 See **[`PUBLISHING.md`](./PUBLISHING.md)** for the full GitHub + Web Store release walkthrough, and **[`RELEASE_NOTES.md`](./RELEASE_NOTES.md)** for the release changelog.
 
 ## Version history
+- **1.1.0** — Hardening release: tiered anchor search with semantic-landmark fallback, shadow-DOM styling, Navigation API + MutationObserver instead of polling, stale-fetch guards, board-type detection, pagination, retry with backoff, visible-tab refresh, least-privilege permissions (`activeTab` instead of host permissions).
 - **1.0.0** — Initial release: sprint-goal banner above the board, per-board toggle, Light/Dark/System themes, Kanban handling.
