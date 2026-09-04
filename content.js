@@ -28,7 +28,9 @@
         const banner = document.getElementById(BANNER_ID);
         if (banner) banner.dataset.sgbTheme = currentTheme;
       });
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      /* ignore */
+    }
   }
 
   /* ---------- board id detection ---------- */
@@ -43,8 +45,10 @@
   }
 
   function onBoardPage() {
-    return /\/(boards|RapidBoard)\b/i.test(window.location.href) ||
-           /[?&]rapidView=\d+/.test(window.location.href);
+    return (
+      /\/(boards|RapidBoard)\b/i.test(window.location.href) ||
+      /[?&]rapidView=\d+/.test(window.location.href)
+    );
   }
 
   /* ---------- per-board enabled setting ---------- */
@@ -74,7 +78,7 @@
     const base = window.location.origin;
     const res = await fetch(
       `${base}/rest/agile/1.0/board/${boardId}/sprint?state=active`,
-      { credentials: "include", headers: { Accept: "application/json" } }
+      { credentials: "include", headers: { Accept: "application/json" } },
     );
     if (!res.ok) {
       // Kanban boards don't support sprints and return 400 here.
@@ -98,10 +102,18 @@
   // pushes the board down on its own — no fixed positioning, no overlap.
   function findBoardContent() {
     return (
-      document.querySelector('[data-testid="software-board.board-container"]') ||
-      document.querySelector('[data-testid="platform-board-kit.ui.board.scroll.board-scroll"]') ||
+      document.querySelector(
+        '[data-testid="software-board.board-container"]',
+      ) ||
+      document.querySelector(
+        '[data-testid="platform-board-kit.ui.board.scroll.board-scroll"]',
+      ) ||
       document.querySelector('[data-testid="software-board.board"]') ||
-      document.querySelector('[data-test-id="platform-board-kit.ui.board.scroll.board-scroll"]') ||
+      document.querySelector(
+        '[data-test-id="platform-board-kit.ui.board.scroll.board-scroll"]',
+      ) ||
+      document.querySelector('[data-vc="page-container-v2-main-wrapper"]') ||
+      document.querySelector('[data-vc="business-board-container"]') ||
       null
     );
   }
@@ -112,7 +124,10 @@
     const board = findBoardContent();
     if (board && board.parentNode) {
       banner.dataset.mode = "inline";
-      if (banner.nextElementSibling !== board || banner.parentNode !== board.parentNode) {
+      if (
+        banner.nextElementSibling !== board ||
+        banner.parentNode !== board.parentNode
+      ) {
         board.parentNode.insertBefore(banner, board);
       }
       return true;
@@ -143,22 +158,21 @@
     banner.dataset.sgbTheme = currentTheme;
 
     if (state === "loading") {
-      banner.innerHTML =
-        `<span class="sgb-label">🎯 Sprint goal</span><span class="sgb-text sgb-muted">Loading…</span>`;
+      banner.innerHTML = `<span class="sgb-label">🎯 Sprint goal</span><span class="sgb-text sgb-muted">Loading…</span>`;
     } else if (state === "note") {
       // Custom label + message (payload = { label, text }).
       banner.innerHTML =
         `<span class="sgb-label">${escapeHtml(payload.label)}</span>` +
         `<span class="sgb-text sgb-muted">${escapeHtml(payload.text)}</span>`;
     } else if (state === "empty") {
-      banner.innerHTML =
-        `<span class="sgb-label">Sprint goal</span><span class="sgb-text sgb-muted">${escapeHtml(payload)}</span>`;
+      banner.innerHTML = `<span class="sgb-label">Sprint goal</span><span class="sgb-text sgb-muted">${escapeHtml(payload)}</span>`;
     } else {
       // state === "goal": payload is an array of {name, goal}
       const parts = payload.map((s) => {
-        const goal = s.goal && s.goal.trim()
-          ? escapeHtml(s.goal.trim())
-          : `<span class="sgb-muted">No goal set for this sprint</span>`;
+        const goal =
+          s.goal && s.goal.trim()
+            ? escapeHtml(s.goal.trim())
+            : `<span class="sgb-muted">No goal set for this sprint</span>`;
         const name = escapeHtml(s.name || "Active sprint");
         return `<span class="sgb-sprint"><span class="sgb-name">${name}</span> ${goal}</span>`;
       });
@@ -170,7 +184,9 @@
         if (lastBoardId) {
           try {
             chrome.storage.local.set({ [storageKey(lastBoardId)]: false });
-          } catch (e) { /* ignore */ }
+          } catch (e) {
+            /* ignore */
+          }
         }
         removeBanner();
       });
@@ -213,11 +229,15 @@
 
     try {
       const sprints = await fetchActiveSprints(boardId);
-      if (!sprints.length) renderBanner("empty", "No active sprint on this board.");
+      if (!sprints.length)
+        renderBanner("empty", "No active sprint on this board.");
       else renderBanner("goal", sprints);
     } catch (err) {
       if (err && err.kanban) {
-        renderBanner("note", { label: "Kanban board", text: "sprint goals don't apply here" });
+        renderBanner("note", {
+          label: "Kanban board",
+          text: "sprint goals don't apply here",
+        });
       } else {
         renderBanner("empty", "Couldn't load the sprint goal.");
       }
@@ -237,7 +257,9 @@
       const key = lastBoardId ? storageKey(lastBoardId) : null;
       if (key && changes[key]) update();
     });
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    /* ignore */
+  }
 
   /* ---------- SPA navigation handling ---------- */
 
