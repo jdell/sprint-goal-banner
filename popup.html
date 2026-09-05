@@ -81,6 +81,18 @@
       <button data-theme="dark">Dark</button>
     </div>
     <div class="note">Applies to the banner on every board.</div>
+
+    <div class="divider"></div>
+    <div class="row">
+      <span class="lbl">Auto-update selectors</span>
+      <label class="switch">
+        <input type="checkbox" id="autoupdate" />
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="note">Fetches a small list of CSS selectors from the developer's
+      GitHub about once a day, so banner placement can be repaired quickly when
+      Jira changes its layout. No data about you is sent.</div>
   </div>
   <script src="popup.js"></script>
 </body>

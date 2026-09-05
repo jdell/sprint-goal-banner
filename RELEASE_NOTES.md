@@ -1,5 +1,24 @@
 # Release notes
 
+## v1.2.0 — Remotely-updatable selectors
+
+Jira renames its internal page hooks on UI reworks, and a Chrome Web Store
+review takes days. Now the banner's placement selectors can be repaired in
+minutes instead.
+
+### Highlights
+- 🔧 **Remotely-updatable selector list** — the extension downloads
+  [`selectors.json`](./selectors.json) from this repository about once a day
+  and uses it to find the board. When Jira changes its layout, fixing placement
+  is a one-file commit — no store review, no extension update.
+- 🧰 **Safe by construction** — the file contains CSS selectors only; they are
+  type-checked, syntax-validated, and capped client-side, and only ever passed
+  to `querySelector`. The built-in landmark fallback can never be overridden,
+  and placement never waits on the network.
+- 🎛️ **Opt-out toggle** — a new **Auto-update selectors** switch in the popup
+  (on by default) disables the daily download entirely; the extension then
+  uses only its built-in selectors. The download sends no user data.
+
 ## v1.1.0 — Hardening release
 
 Placement and lifecycle rework so the banner survives Jira UI reworks instead

@@ -258,6 +258,122 @@
     return null;
   }
 
+  /* ---------- remotely-updatable selector list ---------- */
+
+  // Jira renames its test hooks on UI reworks; a store review cycle takes
+  // days. The tier lists above are baked-in defaults, overridable by a small
+  // JSON of CSS selectors fetched (~daily) from this extension's repo, so a
+  // broken selector can be fixed by editing that file. Placement never waits
+  // on the network: defaults (or the cached config) apply immediately, and
+  // the ensurePlaced machinery picks up improvements whenever they land.
+  const SELECTOR_CONFIG_URL =
+    "https://raw.githubusercontent.com/jdell/sprint-goal-banner/main/selectors.json";
+  const SELECTOR_CONFIG_KEY = "sgb:selectors";
+  const AUTO_UPDATE_KEY = "sgb:autoUpdateSelectors"; // popup toggle, default ON
+  const SELECTOR_CONFIG_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+  let anchors = { exact: EXACT_ANCHORS, fuzzy: FUZZY_ANCHORS, landmarks: LANDMARK_ANCHORS };
+  let selectorCfgSeq = 0; // generation token: an opt-out or newer load cancels in-flight loads
+
+  // The config is data, never code: only type-checked, syntax-validated,
+  // length- and count-capped selector strings survive, and they are only ever
+  // handed to querySelector. Nothing else in the JSON is read.
+  function sanitizeSelectors(list, max, requireHook) {
+    if (!Array.isArray(list)) return [];
+    const out = [];
+    for (const s of list.slice(0, max)) {
+      if (typeof s !== "string" || !s.trim() || s.length > 200) continue;
+      // Board tiers must target an attribute or id hook: a bare `div`/`.foo`
+      // from a bad config would anchor the banner to an arbitrary element.
+      if (requireHook && !/[[#]/.test(s)) continue;
+      try {
+        document.createDocumentFragment().querySelector(s); // throws on bad syntax
+        out.push(s);
+      } catch (e) {
+        /* skip broken selector */
+      }
+    }
+    return out;
+  }
+
+  // Reduce any fetched JSON to the known shape with hard caps. This is both
+  // what gets applied and what gets cached, so a bloated or hostile remote
+  // file can neither fill chrome.storage nor smuggle extra fields along.
+  function pruneSelectorConfig(cfg) {
+    return {
+      version: cfg && typeof cfg.version === "number" ? cfg.version : 0,
+      exact: sanitizeSelectors(cfg && cfg.exact, 20, true),
+      fuzzy: sanitizeSelectors(cfg && cfg.fuzzy, 20, true),
+      landmarks: sanitizeSelectors(cfg && cfg.landmarks, 20, false),
+    };
+  }
+
+  function applySelectorConfig(cfg) {
+    const p = pruneSelectorConfig(cfg);
+    const next = { exact: anchors.exact, fuzzy: anchors.fuzzy, landmarks: anchors.landmarks };
+    if (p.exact.length) next.exact = p.exact;
+    if (p.fuzzy.length) next.fuzzy = p.fuzzy;
+    // Remote landmarks are only ever prepended — the baked-in ones stay, so a
+    // bad config can't take the last-resort tier away.
+    if (p.landmarks.length) next.landmarks = [...new Set([...p.landmarks, ...LANDMARK_ANCHORS])];
+    if (JSON.stringify(next) === JSON.stringify(anchors)) return;
+    anchors = next;
+    // Changed selectors get an immediate, honest attempt at the precise tiers:
+    // demotion state earned under the old selectors no longer applies, and the
+    // bad-layout/eviction detectors re-demote quickly if these are also wrong.
+    forcedLandmarkUntil = 0;
+    evictions = [];
+    if (hostEl && hostEl.isConnected) scheduleEnsure();
+  }
+
+  function resetSelectorConfig() {
+    selectorCfgSeq++; // cancel any in-flight load
+    anchors = { exact: EXACT_ANCHORS, fuzzy: FUZZY_ANCHORS, landmarks: LANDMARK_ANCHORS };
+    forcedLandmarkUntil = 0;
+    evictions = [];
+    if (hostEl && hostEl.isConnected) scheduleEnsure();
+  }
+
+  // Called at startup and piggybacked on the refresh/visibility ticks; the
+  // freshness check makes every call after the daily fetch a cheap no-op.
+  async function loadSelectorConfig() {
+    const seq = ++selectorCfgSeq;
+    const res = await storageGet([SELECTOR_CONFIG_KEY, AUTO_UPDATE_KEY]);
+    if (seq !== selectorCfgSeq) return; // superseded while awaiting
+    if (!res || res[AUTO_UPDATE_KEY] === false) return; // opted out (or storage gone): ship defaults
+    const stored = res[SELECTOR_CONFIG_KEY];
+    if (stored && stored.config) applySelectorConfig(stored.config);
+    if (stored && Date.now() - stored.fetchedAt < SELECTOR_CONFIG_MAX_AGE_MS) return;
+    try {
+      // raw.githubusercontent.com sends Access-Control-Allow-Origin: *, so
+      // this needs no host permission; if the page's CSP or the network
+      // blocks it, the catch leaves the current selectors in charge.
+      // no-referrer: the default policy would leak the customer's Jira tenant
+      // hostname to GitHub in the Referer header.
+      const resp = await fetch(SELECTOR_CONFIG_URL, {
+        cache: "no-cache",
+        referrerPolicy: "no-referrer",
+      });
+      if (!resp.ok) return;
+      const cfg = await resp.json();
+      if (seq !== selectorCfgSeq) return; // user opted out mid-fetch: discard
+      applySelectorConfig(cfg);
+      try {
+        // fetchedAt is only written on success, so a failed fetch retries on
+        // the next attempt. Callback form + lastError read keeps a quota or
+        // orphaned-context failure from becoming an unhandled rejection.
+        chrome.storage.local.set(
+          { [SELECTOR_CONFIG_KEY]: { fetchedAt: Date.now(), config: pruneSelectorConfig(cfg) } },
+          () => void chrome.runtime.lastError,
+        );
+      } catch (e) {
+        /* orphaned context — the in-memory config still applies */
+      }
+    } catch (e) {
+      /* offline or blocked: current selectors remain */
+    }
+  }
+
   /* ---------- banner host (shadow DOM) ---------- */
 
   const SHADOW_CSS = `
@@ -447,7 +563,7 @@
     placedAtUrl = location.href;
     const now = Date.now();
     if (now >= forcedLandmarkUntil) {
-      const board = queryFirst(EXACT_ANCHORS) || queryFirst(FUZZY_ANCHORS);
+      const board = queryFirst(anchors.exact) || queryFirst(anchors.fuzzy);
       if (board && board.parentNode) {
         if (host.parentNode !== board.parentNode || host.nextElementSibling !== board) {
           board.parentNode.insertBefore(host, board);
@@ -469,7 +585,7 @@
     }
 
     currentAnchor = null;
-    const landmark = queryFirst(LANDMARK_ANCHORS);
+    const landmark = queryFirst(anchors.landmarks);
     if (landmark) {
       if (host.parentNode !== landmark || landmark.firstElementChild !== host) {
         landmark.prepend(host);
@@ -528,8 +644,8 @@
       // landed in #jira-frontend before <main> existed).
       const canUpgrade =
         Date.now() >= forcedLandmarkUntil &&
-        (queryFirst(EXACT_ANCHORS) || queryFirst(FUZZY_ANCHORS));
-      const landmark = queryFirst(LANDMARK_ANCHORS);
+        (queryFirst(anchors.exact) || queryFirst(anchors.fuzzy));
+      const landmark = queryFirst(anchors.landmarks);
       if (canUpgrade || (landmark && hostEl.parentNode !== landmark)) placeBanner(hostEl);
     }
   }
@@ -568,7 +684,10 @@
           teardown();
           return;
         }
-        if (document.visibilityState === "visible") update();
+        if (document.visibilityState === "visible") {
+          update();
+          loadSelectorConfig(); // no-op until the daily freshness window passes
+        }
       }, REFRESH_MS);
     }
   }
@@ -787,6 +906,11 @@
         currentTheme = changes[THEME_KEY].newValue || "system";
         applyTheme();
       }
+      if (changes[AUTO_UPDATE_KEY]) {
+        // reset/apply schedule their own re-placement when anchors change
+        if (changes[AUTO_UPDATE_KEY].newValue === false) resetSelectorConfig();
+        else loadSelectorConfig();
+      }
       if (currentBoardId && changes[storageKey(currentBoardId)]) update();
     });
   } catch (e) {
@@ -840,7 +964,10 @@
       teardown();
       return;
     }
-    if (currentBoardId && parseBoardLocation(location.href)) update();
+    if (currentBoardId && parseBoardLocation(location.href)) {
+      update();
+      loadSelectorConfig(); // long-lived tab: pick up a stale-by-now config
+    }
   }
 
   if ("navigation" in window) {
@@ -852,5 +979,6 @@
   document.addEventListener("visibilitychange", onVisibility);
 
   loadTheme();
+  loadSelectorConfig();
   update();
 })();

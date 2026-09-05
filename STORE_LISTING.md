@@ -28,7 +28,7 @@ uploaded automatically; it's a fill-in sheet.
 > - Recognizes Kanban boards and shows a friendly note instead of an error.
 >
 > **Private by design**
-> No accounts, no tracking, no servers. The extension talks only to your own Jira site using your existing session — the same request Jira's own app makes. Your data never leaves your browser.
+> No accounts, no tracking, no servers. The extension talks only to your own Jira site using your existing session — the same request Jira's own app makes. Your data never leaves your browser. (Optionally, and on by default, it downloads a small public list of CSS selectors from the developer's GitHub once a day so placement can be repaired quickly when Jira changes its layout — no data about you is sent, and you can turn it off in the popup.)
 >
 > Works on Jira Cloud (yourcompany.atlassian.net).
 
@@ -40,8 +40,9 @@ uploaded automatically; it's a fill-in sheet.
 ## Permission justifications (required)
 
 **`storage`**
-> Used to remember two per-device preferences: whether the banner is enabled for
-> a given board, and the selected banner theme (System/Light/Dark). No data is
+> Used to remember per-device preferences (whether the banner is enabled for a
+> given board, the selected banner theme, and whether selector auto-update is
+> on) plus a cache of the public selector list described below. No data is
 > transmitted anywhere.
 
 **`activeTab`**
@@ -54,12 +55,19 @@ uploaded automatically; it's a fill-in sheet.
 > every customer has their own `<site>.atlassian.net` subdomain and boards are
 > reached through Jira's in-page navigation. The script reads the board id from
 > the URL and requests the active sprint goal from the user's own Jira site via
-> its same-origin Agile REST API using the user's existing session. The
-> extension accesses no other sites and sends no data to third parties.
+> its same-origin Agile REST API using the user's existing session. Apart from
+> the optional, user-disableable download of the public `selectors.json` data
+> file described under Remote code, the extension accesses no other sites and
+> sends no user data to third parties.
 
 **Remote code**
 > No. All code is bundled in the package; nothing is fetched or executed from a
-> remote source.
+> remote source. The extension optionally downloads a static JSON *data* file
+> (a list of CSS selectors, `selectors.json` in the extension's public GitHub
+> repository) about once a day so board-layout changes in Jira can be fixed
+> without waiting for a store review. The file is validated client-side, is
+> only ever passed to `querySelector`, and is never executed; the download can
+> be disabled in the popup and sends no user data.
 
 ## Data usage disclosures (Privacy practices tab)
 

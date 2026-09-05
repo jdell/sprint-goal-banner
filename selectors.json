@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "comment": "Board-anchor selectors fetched by installed extensions (~daily). Editing this file on main ships to users without a store review — treat it like production config: test against live Jira before committing. Selectors are CSS only; they are validated and capped client-side, and the extension's baked-in landmark tier always remains as a fallback.",
+  "exact": [
+    "[data-testid=\"software-board.board-container\"]",
+    "[data-testid=\"platform-board-kit.ui.board.scroll.board-scroll\"]",
+    "[data-testid=\"software-board.board\"]",
+    "[data-test-id=\"platform-board-kit.ui.board.scroll.board-scroll\"]"
+  ],
+  "fuzzy": [
+    "[data-testid^=\"software-board.board\"]",
+    "[data-testid*=\"board-scroll\" i]",
+    "[data-test-id*=\"board-scroll\" i]",
+    "[data-testid*=\"board-container\" i]",
+    "[data-vc=\"page-container-v2-main-wrapper\"]",
+    "[data-vc=\"business-board-container\"]"
+  ],
+  "landmarks": []
+}

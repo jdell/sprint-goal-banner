@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Sprint Goal Banner for Jira",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Shows your active Jira sprint goal in a banner above the board, so you never have to dig for it.",
   "minimum_chrome_version": "102",
   "icons": {

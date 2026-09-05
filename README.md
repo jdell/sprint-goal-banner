@@ -2,7 +2,7 @@
 
 Shows a banner above your Jira board with the **active sprint's goal**, so you don't have to click into the sprint to read it.
 
-Works on Jira Cloud (`*.atlassian.net`). It reads the board id from the URL and calls Jira's own Agile REST API using your logged-in session — no tokens, no config, nothing leaves your browser.
+Works on Jira Cloud (`*.atlassian.net`). It reads the board id from the URL and calls Jira's own Agile REST API using your logged-in session — no tokens, no config, and apart from an optional daily download of [`selectors.json`](./selectors.json) from this repo (placement fixes; no data about you is sent, opt out in the popup), nothing leaves your browser.
 
 ## Install (developer mode)
 
@@ -20,6 +20,7 @@ To update after edits, click the refresh icon on the extension card.
 - Renders each active sprint's name + goal in the banner. If a board runs parallel sprints, all active goals are shown.
 - **Inserts the banner in the normal page flow, just above the board content**, so it never overlaps the board — the board simply starts below it. The banner lives in a shadow root, so Jira's CSS can't restyle it and vice versa.
 - Finds its place with a tiered anchor search: Jira's board container test hooks first, fuzzy attribute matches next, and the `main[role="main"]` landmark as a fallback — so a Jira UI rework degrades placement gracefully instead of breaking the banner.
+- The selector tiers are remotely updatable: about once a day the extension downloads [`selectors.json`](./selectors.json) from this repo (validated, capped, CSS selectors only — never code), so a broken selector can be fixed by editing that file instead of waiting days for a store review. Placement never waits on the network — built-in defaults apply immediately — and the download can be turned off in the popup (**Auto-update selectors**).
 - Follows Jira's single-page navigation via the Navigation API and re-places the banner through a MutationObserver when Jira re-renders — no constant polling.
 - Refreshes the goal about once a minute while the tab is visible, and backs off with retries when Jira can't be reached.
 
@@ -52,9 +53,11 @@ The popup has a **Banner theme** switch: **System** (follows Jira's own light/da
 - `manifest.json`, `content.js`, `popup.html`, `popup.js`, `icons/`
 ### Not shipped (repo/store only)
 - `store/` (screenshots), `STORE_LISTING.md`, `PRIVACY.md`, `README.md`, `LICENSE`, `package.sh`, `PUBLISHING.md`, `RELEASE_NOTES.md`, `.gitignore`
+- `selectors.json` — the served selector config; fetched at runtime from this repo, must **not** be bundled into the zip
 
 See **[`PUBLISHING.md`](./PUBLISHING.md)** for the full GitHub + Web Store release walkthrough, and **[`RELEASE_NOTES.md`](./RELEASE_NOTES.md)** for the release changelog.
 
 ## Version history
+- **1.2.0** — Remotely-updatable selector list: placement selectors can be repaired by editing `selectors.json` in this repo (daily fetch, validated client-side, opt-out toggle in the popup).
 - **1.1.0** — Hardening release: tiered anchor search with semantic-landmark fallback, shadow-DOM styling, Navigation API + MutationObserver instead of polling, stale-fetch guards, board-type detection, pagination, retry with backoff, visible-tab refresh, least-privilege permissions (`activeTab` instead of host permissions).
 - **1.0.0** — Initial release: sprint-goal banner above the board, per-board toggle, Light/Dark/System themes, Kanban handling.

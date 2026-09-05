@@ -90,3 +90,17 @@ async function initTheme() {
 }
 
 initTheme();
+
+/* Selector auto-update (global): daily fetch of selectors.json from the repo. */
+const AUTO_UPDATE_KEY = "sgb:autoUpdateSelectors";
+const autoEl = document.getElementById("autoupdate");
+
+async function initAutoUpdate() {
+  const stored = await chrome.storage.local.get(AUTO_UPDATE_KEY);
+  autoEl.checked = stored[AUTO_UPDATE_KEY] !== false; // default ON
+  autoEl.addEventListener("change", async () => {
+    await chrome.storage.local.set({ [AUTO_UPDATE_KEY]: autoEl.checked });
+  });
+}
+
+initAutoUpdate();
