@@ -9,9 +9,9 @@ your own machine. It exists only to display your active Jira sprint goal.
 
 - Runs only on Jira Cloud pages (`https://*.atlassian.net/*`).
 - Reads the board id from the page URL and calls Jira's own Agile REST API
-  (`/rest/agile/1.0/board/{id}/sprint?state=active`) on the same domain you are
-  already signed in to, using your existing browser session. This is the same
-  request Jira's own web app makes.
+  (the board and active-sprint endpoints under `/rest/agile/1.0/board/{id}`)
+  on the same domain you are already signed in to, using your existing browser
+  session. These are the same requests Jira's own web app makes.
 - Displays the returned sprint name and goal in a banner on the board page.
 - Optionally (on by default, can be turned off in the popup) fetches a small
   static JSON file of CSS selectors from the extension's public GitHub
@@ -20,7 +20,10 @@ your own machine. It exists only to display your active Jira sprint goal.
 
 ## Data collection
 
-**The extension does not collect, transmit, sell, or share any personal data.**
+**The extension does not transmit, sell, or share any personal data — nothing
+about you or your Jira content ever leaves your device.** To do its job it
+reads website content from your own Jira site (the active sprint's name and
+goal) on your device, solely to display it in the banner.
 
 - No analytics, tracking, telemetry, or advertising.
 - No data is sent to the developer or to any third-party server.
@@ -58,5 +61,6 @@ These never leave your browser and are removed if you uninstall the extension.
 
 ## Contact
 
-Questions about this policy can be directed to the developer through the Chrome
-Web Store listing's support channel.
+Questions about this policy can be raised on the project's issue tracker at
+https://github.com/jdell/sprint-goal-banner/issues, or directed to the
+developer through the Chrome Web Store listing's support channel.

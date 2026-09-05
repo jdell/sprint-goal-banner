@@ -60,9 +60,10 @@ gh release create v1.0.0 sprint-goal-banner-1.0.0.zip \
 ## 3. Submit to the Chrome Web Store
 
 Follow the checklist in `README.md` → *Publishing to the Chrome Web Store*, using
-`STORE_LISTING.md` for the copy and permission justifications, `PRIVACY.md`
-(hosted URL from step 1) for the privacy field, `icons/icon128.png` for the icon,
-and `store/screenshot-1280x800.png` for the screenshot.
+`STORE_LISTING.md` for the copy, permission justifications, and privacy-tab
+answers, `PRIVACY.md` (hosted URL from step 1) for the privacy field,
+`icons/icon128.png` for the icon, and the four numbered screenshots in `store/`
+(01 first — it's the main image).
 
 ## Releasing future versions
 
