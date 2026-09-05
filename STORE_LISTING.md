@@ -114,8 +114,10 @@ is no separate box to paste into. The live summary will be:
   3. `store/03-kanban-note.png` — the Kanban message.
   4. `store/04-settings-popup.png` — the toolbar popup (shows the per-board
      toggle, themes, and the v1.2.0 "Auto-update selectors" switch).
-- **Small promo tile (optional, 440×280):** not prepared; not required for
-  submission, but improves placement on some store surfaces.
+- **Small promo tile (optional, 440×280):** `store/05-promo-small-440x280.png`
+  (24-bit PNG, no alpha — the dashboard rejects alpha channels).
+- **Marquee promo tile (optional, 1400×560):** `store/06-promo-marquee-1400x560.png`
+  (24-bit PNG, no alpha).
 
 Suggested per-screenshot captions:
 1. "Your sprint goal, always in view above the board"
