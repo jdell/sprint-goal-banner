@@ -112,9 +112,8 @@ is no separate box to paste into. The live summary will be:
   1. `store/01-sprint-goal-banner.png` — the goal banner above a board.
   2. `store/02-dark-theme.png` — dark theme.
   3. `store/03-kanban-note.png` — the Kanban message.
-  4. `store/04-settings-popup.png` — the toolbar popup. **Must be re-captured
-     for v1.2.0** — the current image predates the "Auto-update selectors"
-     toggle and no longer matches the shipped popup.
+  4. `store/04-settings-popup.png` — the toolbar popup (shows the per-board
+     toggle, themes, and the v1.2.0 "Auto-update selectors" switch).
 - **Small promo tile (optional, 440×280):** not prepared; not required for
   submission, but improves placement on some store surfaces.
 
